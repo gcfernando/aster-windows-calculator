@@ -6,6 +6,8 @@
 
 # Aster — Offline Windows Calculator
 
+**Read online:** [Documentation website](https://gcfernando.github.io/aster-windows-calculator/) · [All guides](documentation.md)
+
 <p align="center"><strong>A thoughtful space for everyday calculation.</strong></p>
 
 **Aster is an offline Windows calculator for everyday arithmetic, scientific expressions, programmer calculations, unit conversions and date arithmetic.** Its native Windows Forms interface keeps five modes, searchable history and reusable results in one workspace.
@@ -16,13 +18,13 @@ All features are fully enabled. There is no payment prompt, product key or activ
 
 <p align="center">
   <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0"><img src="https://img.shields.io/badge/.NET-10-512BD4?style=flat-square" alt=".NET 10"></a>
-  <a href="Directory.Build.props"><img src="https://img.shields.io/badge/C%23-14-239120?style=flat-square" alt="C# 14"></a>
-  <a href="src/ModernCalculator.WinForms/ModernCalculator.WinForms.csproj"><img src="https://img.shields.io/badge/Desktop-Windows%20Forms-1969EC?style=flat-square" alt="Windows Forms desktop app"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-64748B?style=flat-square" alt="MIT license"></a>
+  <a href="https://github.com/gcfernando/aster-windows-calculator/blob/main/Directory.Build.props"><img src="https://img.shields.io/badge/C%23-14-239120?style=flat-square" alt="C# 14"></a>
+  <a href="https://github.com/gcfernando/aster-windows-calculator/blob/main/src/ModernCalculator.WinForms/ModernCalculator.WinForms.csproj"><img src="https://img.shields.io/badge/Desktop-Windows%20Forms-1969EC?style=flat-square" alt="Windows Forms desktop app"></a>
+  <a href="https://github.com/gcfernando/aster-windows-calculator/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-64748B?style=flat-square" alt="MIT license"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/gcfernando/aster/releases/download/latest/Aster-win-x64.zip">⬇️ Download for Windows x64</a> ·
+  <a href="https://github.com/gcfernando/aster-windows-calculator/releases/download/latest/Aster-win-x64.zip">⬇️ Download for Windows x64</a> ·
   <a href="#readme-quick-start">🚀 Get started</a> ·
   <a href="#readme-gui">🖥️ Explore the interface</a> ·
   <a href="#readme-development">🧪 Build and test</a>
@@ -77,7 +79,7 @@ Choose Aster for local numerical work that benefits from these modes and result 
 
 ## 🖥️ Desktop interface
 
-The desktop interface is implemented in [ModernCalculator.WinForms](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.WinForms), uses the Core calculation engines and Infrastructure state store, and publishes as **`Aster.exe`**.
+The desktop interface is implemented in [ModernCalculator.WinForms](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.WinForms), uses the Core calculation engines and Infrastructure state store, and publishes as **`Aster.exe`**.
 
 Launch it with the [Quick start command](#readme-quick-start), or run `Aster.exe` from a [published folder](#readme-publishing). A framework-dependent folder needs the **.NET 10 Desktop Runtime** on the destination computer; a self-contained folder includes its matching runtime. The optional `ASTER_DATA_DIRECTORY` setting selects a local profile directory; see [configuration and local data](#readme-configuration).
 
@@ -108,15 +110,15 @@ Results are selectable and read-only. Long values fit, wrap and use explicit dig
   </picture>
 </p>
 
-<p align="center"><em>Scientific mode: the preview follows your light or dark theme.</em><br><a href="docs/images/scientific-light.png">Light preview</a> · <a href="docs/images/scientific-dark.png">Dark preview</a></p>
+<p align="center"><em>Scientific mode: the preview follows your light or dark theme.</em><br><a href="https://gcfernando.github.io/aster-windows-calculator/docs/images/scientific-light.png">Light preview</a> · <a href="https://gcfernando.github.io/aster-windows-calculator/docs/images/scientific-dark.png">Dark preview</a></p>
 
 | Standard · light | Programmer · dark |
 | :---: | :---: |
-| [![Aster GUI Standard calculator with decimal keypad and memory controls above the keys](docs/images/standard-light.png)](docs/images/standard-light.png) | [![Aster GUI Programmer calculator with synchronized DEC, HEX, OCT and BIN rows, word sizes and bit-editor controls](docs/images/programmer-dark.png)](docs/images/programmer-dark.png) |
+| [![Aster GUI Standard calculator with decimal keypad and memory controls above the keys](docs/images/standard-light.png)](https://gcfernando.github.io/aster-windows-calculator/docs/images/standard-light.png) | [![Aster GUI Programmer calculator with synchronized DEC, HEX, OCT and BIN rows, word sizes and bit-editor controls](docs/images/programmer-dark.png)](https://gcfernando.github.io/aster-windows-calculator/docs/images/programmer-dark.png) |
 
 | Converter · light | Dates · dark |
 | :---: | :---: |
-| [![Aster GUI unit converter showing one metre as 0.001 kilometres, searchable units and save actions](docs/images/converter-light.png)](docs/images/converter-light.png) | [![Aster GUI date calculator with ISO date fields, calendar buttons and elapsed or inclusive counting](docs/images/dates-dark.png)](docs/images/dates-dark.png) |
+| [![Aster GUI unit converter showing one metre as 0.001 kilometres, searchable units and save actions](docs/images/converter-light.png)](https://gcfernando.github.io/aster-windows-calculator/docs/images/converter-light.png) | [![Aster GUI date calculator with ISO date fields, calendar buttons and elapsed or inclusive counting](docs/images/dates-dark.png)](https://gcfernando.github.io/aster-windows-calculator/docs/images/dates-dark.png) |
 
 Select a gallery image to view it at full size. These real repository assets are **hidden WinForms component snapshots** of the application's client layout, produced by the UI harness. They are interface previews, not desktop recordings or evidence of physical-input, window-manager or native DPI testing.
 
@@ -126,13 +128,13 @@ Select a gallery image to view it at full size. These real repository assets are
 
 ### Download and run
 
-1. Download **[Aster-win-x64.zip — latest main preview](https://github.com/gcfernando/aster/releases/download/latest/Aster-win-x64.zip)**. [Release notes and SHA-256 checksum](https://github.com/gcfernando/aster/releases/tag/latest) identify the published commit and passing build.
+1. Download **[Aster-win-x64.zip — latest main preview](https://github.com/gcfernando/aster-windows-calculator/releases/download/latest/Aster-win-x64.zip)**. [Release notes and SHA-256 checksum](https://github.com/gcfernando/aster-windows-calculator/releases/tag/latest) identify the published commit and passing build.
 2. Install the **[.NET 10 Desktop Runtime for Windows x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)** if it is not already installed. Choose **Desktop Runtime**, rather than the ASP.NET Core runtime.
 3. Right-click the ZIP, select **Extract All**, then open **`Aster.exe`** in the extracted folder. Keep all extracted files together.
 
 This fully enabled download is an **unsigned preview** built automatically after a push to `main` passes verification. It may have issues that automated tests cannot detect. Use a supported Windows x64 edition; see the [installation, update and rollback guide](docs/release-guide.md). Updates are manual: close Aster and extract the new ZIP into a separate folder. Download the ZIP asset rather than GitHub's source-code archives.
 
-If a new build is still running or fails its checks, use the previously published preview. Each successful verification run also provides an **Aster-win-x64** artifact on the [Actions page](https://github.com/gcfernando/aster/actions/workflows/verify.yml), retained for 30 days; downloading Actions artifacts requires a GitHub login. The release download above is the permanent public link.
+If a new build is still running or fails its checks, use the previously published preview. Each successful verification run also provides an **Aster-win-x64** artifact on the [Actions page](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml), retained for 30 days; downloading Actions artifacts requires a GitHub login. The release download above is the permanent public link.
 
 ### Build from source
 
@@ -141,8 +143,8 @@ Build from source on **Windows** with the **[.NET 10 SDK](https://dotnet.microso
 Run these commands in PowerShell; all commands after `cd` run from the repository root:
 
 ```powershell
-git clone https://github.com/gcfernando/aster.git
-cd aster
+git clone https://github.com/gcfernando/aster-windows-calculator.git
+cd aster-windows-calculator
 dotnet restore ModernCalculator.sln
 dotnet build ModernCalculator.sln -c Release -m:1
 dotnet run --project src/ModernCalculator.WinForms -c Release --no-build
@@ -150,15 +152,15 @@ dotnet run --project src/ModernCalculator.WinForms -c Release --no-build
 
 **Expected startup:** Aster opens in a centered window. A fresh profile uses the light theme and Standard mode, with history collapsed. Enter `0.1 + 0.2` and press **Enter**: Standard returns exactly `0.3`. Use your regional decimal separator on the keypad.
 
-[global.json](global.json) requests SDK `10.0.100` with `latestFeature` roll-forward, allowing later installed .NET 10 feature bands. Application projects have **no third-party package dependencies**; only the xUnit test project declares NuGet package references. SDK/runtime installation and initial restore can need internet access; calculations work offline.
+[global.json](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json) requests SDK `10.0.100` with `latestFeature` roll-forward, allowing later installed .NET 10 feature bands. Application projects have **no third-party package dependencies**; only the xUnit test project declares NuGet package references. SDK/runtime installation and initial restore can need internet access; calculations work offline.
 
-**Using Visual Studio?** Open [ModernCalculator.sln](ModernCalculator.sln) in **Visual Studio 2026 (18+)** with the **.NET desktop development** workload. Set **ModernCalculator.WinForms** as the startup project and press **F5**. Core and Infrastructure are libraries. See Microsoft's [SDK/Visual Studio compatibility guide](https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs); Visual Studio 2022 does not officially support targeting .NET 10.
+**Using Visual Studio?** Open [ModernCalculator.sln](https://github.com/gcfernando/aster-windows-calculator/blob/main/ModernCalculator.sln) in **Visual Studio 2026 (18+)** with the **.NET desktop development** workload. Set **ModernCalculator.WinForms** as the startup project and press **F5**. Core and Infrastructure are libraries. See Microsoft's [SDK/Visual Studio compatibility guide](https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs); Visual Studio 2022 does not officially support targeting .NET 10.
 
 To run on another Windows computer, [publish a distributable folder](#readme-publishing).
 
 ## 📦 Prerequisites and installation
 
-For the portable preview, use Windows x64 with the .NET 10 Desktop Runtime. Source builds need the .NET 10 SDK selected by [global.json](global.json); Git and initial NuGet access are required for the clone and test-package restore. The [release guide](docs/release-guide.md#install-and-first-run) covers extraction, updates and removal. Keep the complete published folder together.
+For the portable preview, use Windows x64 with the .NET 10 Desktop Runtime. Source builds need the .NET 10 SDK selected by [global.json](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json); Git and initial NuGet access are required for the clone and test-package restore. The [release guide](docs/release-guide.md#install-and-first-run) covers extraction, updates and removal. Keep the complete published folder together.
 
 <a id="-configuration-privacy-and-local-data"></a>
 
@@ -294,11 +296,11 @@ flowchart TD
 
 | Project or setting | Responsibility |
 | --- | --- |
-| [ModernCalculator.Core](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.Core) | `net10.0` engines, bounded `BigDecimal`/`BigInteger` arithmetic, expression grammar, integer operations, conversions, dates, memory and history; no Windows Forms references. |
-| [ModernCalculator.Infrastructure](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.Infrastructure) | Validated `AppSettings` and `System.Text.Json` state storage; references Core. |
-| [ModernCalculator.WinForms](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.WinForms) | `net10.0-windows` GUI executable, forms, mode views, custom controls, vector icons, themes and PerMonitorV2 configuration; references both libraries. |
-| [ModernCalculator.Tests](https://github.com/gcfernando/aster/tree/main/tests/ModernCalculator.Tests) | xUnit, Microsoft.NET.Test.Sdk and the Visual Studio test adapter. |
-| [Directory.Build.props](Directory.Build.props) | C# 14, nullable reference types, implicit usings, deterministic builds and warnings treated as errors. |
+| [ModernCalculator.Core](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.Core) | `net10.0` engines, bounded `BigDecimal`/`BigInteger` arithmetic, expression grammar, integer operations, conversions, dates, memory and history; no Windows Forms references. |
+| [ModernCalculator.Infrastructure](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.Infrastructure) | Validated `AppSettings` and `System.Text.Json` state storage; references Core. |
+| [ModernCalculator.WinForms](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.WinForms) | `net10.0-windows` GUI executable, forms, mode views, custom controls, vector icons, themes and PerMonitorV2 configuration; references both libraries. |
+| [ModernCalculator.Tests](https://github.com/gcfernando/aster-windows-calculator/tree/main/tests/ModernCalculator.Tests) | xUnit, Microsoft.NET.Test.Sdk and the Visual Studio test adapter. |
+| [Directory.Build.props](https://github.com/gcfernando/aster-windows-calculator/blob/main/Directory.Build.props) | C# 14, nullable reference types, implicit usings, deterministic builds and warnings treated as errors. |
 
 Mouse and keyboard routes share engine actions. Modes are constructed on first use and retained for the session, preserving their inputs when you switch. History formatting, drawer cards and result fitting reuse cached work. The scientific parser is a bounded recursive-descent parser, not a scripting engine.
 
@@ -323,7 +325,7 @@ docs/
   images/                          # Existing logo and Aster GUI previews
 ```
 
-Original vector icons and a bundled multi-resolution executable icon provide the branding. [Generate-Icon.ps1](tools/Generate-Icon.ps1) regenerates the icon on Windows. The README logo is the existing icon's embedded 256-pixel PNG.
+Original vector icons and a bundled multi-resolution executable icon provide the branding. [Generate-Icon.ps1](https://github.com/gcfernando/aster-windows-calculator/blob/main/tools/Generate-Icon.ps1) regenerates the icon on Windows. The README logo is the existing icon's embedded 256-pixel PNG.
 
 <a id="-testing-and-development"></a>
 
@@ -346,7 +348,7 @@ dotnet run --project tests/ModernCalculator.UiChecks -c Release --no-build -- ar
 
 The engine suite checks calculation and persistence behavior, including independent definition-based anchors for all **78 converter units**, locale parsing and profile compatibility. The Windows-only component executable checks hidden controls, handlers, layout and snapshots using isolated state. Its PNGs and scale simulations do not establish physical-input, window-manager, screen-reader or real monitor-transition behavior.
 
-The [Windows verification workflow](.github/workflows/verify.yml) runs release-helper regressions and complete release verification on pushes, pull requests or manual dispatch. Successful runs package the verified application and retain the **Aster-win-x64** download for 30 days; reports are retained for 14 days. A passing push to the current `main` commit also updates the [latest preview release](https://github.com/gcfernando/aster/releases/tag/latest). Pull requests, manual runs and older reruns cannot replace that release. Check the actual run and reports for current results.
+The [Windows verification workflow](https://github.com/gcfernando/aster-windows-calculator/blob/main/.github/workflows/verify.yml) runs release-helper regressions and complete release verification on pushes, pull requests or manual dispatch. Successful runs package the verified application and retain the **Aster-win-x64** download for 30 days; reports are retained for 14 days. A passing push to the current `main` commit also updates the [latest preview release](https://github.com/gcfernando/aster-windows-calculator/releases/tag/latest). Pull requests, manual runs and older reruns cannot replace that release. Check the actual run and reports for current results.
 
 Follow the [development guide](docs/development.md) for TRX reports, the visible `ModernCalculator.DesktopAudit` walkthrough and specialized packaging prerequisites. The [component-check guide](tests/ModernCalculator.UiChecks/README.md) explains filters, report fields and rendering limits. Use actual run reports rather than historical count defaults as evidence of a pass.
 
@@ -388,7 +390,7 @@ dotnet publish src/ModernCalculator.WinForms -c Release -r win-x64 --self-contai
 
 This may download the matching runtime pack. Both commands create local publish folders. Keep the full folder together and include LICENSE. A bundled runtime needs servicing through a new application package; a framework-dependent build uses the compatible installed runtime. Check Microsoft's [.NET 10 supported Windows editions](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md).
 
-The specialized [audit packaging script](tools/Package-Audited.ps1) remains available for its historical prepared-folder workflow, described in [specialized audit packaging](docs/development.md#specialized-audit-packaging).
+The specialized [audit packaging script](https://github.com/gcfernando/aster-windows-calculator/blob/main/tools/Package-Audited.ps1) remains available for its historical prepared-folder workflow, described in [specialized audit packaging](docs/development.md#specialized-audit-packaging).
 
 <a id="-troubleshooting-and-faq"></a>
 
@@ -399,7 +401,7 @@ The specialized [audit packaging script](tools/Package-Audited.ps1) remains avai
 | Symptom | Check or action |
 | --- | --- |
 | Visual Studio says a class library cannot be started | Select **ModernCalculator.WinForms** as the startup project; Visual Studio can retain an older per-user selection. |
-| The .NET 10 target is unavailable | Install the .NET 10 SDK, check `dotnet --list-sdks` and [global.json](global.json), and use Visual Studio 2026 (18+) for IDE builds. |
+| The .NET 10 target is unavailable | Install the .NET 10 SDK, check `dotnet --list-sdks` and [global.json](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json), and use Visual Studio 2026 (18+) for IDE builds. |
 | A published Aster asks for .NET | Install the matching **.NET 10 Desktop Runtime**, or use a self-contained publish folder. |
 | A Scientific function rejects arguments | Match the locale's argument separator, use explicit multiplication and check the function's real-number domain. **F1** opens built-in examples. |
 | An edited result cannot be copied | Evaluate again. Scientific expression/angle edits and incomplete Programmer input invalidate the previous copyable result. |
@@ -420,9 +422,9 @@ The specialized [audit packaging script](tools/Package-Audited.ps1) remains avai
 
 ## 🤝 Contributing
 
-Use the [issue tracker](https://github.com/gcfernando/aster/issues) for reproducible problems and proposed improvements. F1 → Support provides local version/build/runtime and display diagnostics that you can review and copy. Include exact steps and sample input. The diagnostic text excludes calculations, history, memory, usernames and profile paths; nothing is sent automatically. Use sample data in screenshots.
+Use the [issue tracker](https://github.com/gcfernando/aster-windows-calculator/issues) for reproducible problems and proposed improvements. F1 → Support provides local version/build/runtime and display diagnostics that you can review and copy. Include exact steps and sample input. The diagnostic text excludes calculations, history, memory, usernames and profile paths; nothing is sent automatically. Use sample data in screenshots.
 
-Keep changes focused, preserve the numeric contracts and run the relevant engine tests and Windows component checks. Update documentation when behavior changes. Start with the [Core engines](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.Core) and [mode views](https://github.com/gcfernando/aster/tree/main/src/ModernCalculator.WinForms/Views) to trace how input reaches a calculation.
+Keep changes focused, preserve the numeric contracts and run the relevant engine tests and Windows component checks. Update documentation when behavior changes. Start with the [Core engines](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.Core) and [mode views](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.WinForms/Views) to trace how input reaches a calculation.
 
 ## 🔒 Security
 
@@ -434,10 +436,10 @@ Calculations, history and memory can contain private information. Review screens
 
 ## 📄 Support and license
 
-Aster Calculator is licensed under the **[MIT License](LICENSE)**. Copyright © 2026 Gehan Fernando.
+Aster Calculator is licensed under the **[MIT License](https://github.com/gcfernando/aster-windows-calculator/blob/main/LICENSE)**. Copyright © 2026 Gehan Fernando.
 
-- [GitHub repository](https://github.com/gcfernando/aster)
-- [Report a problem or suggest an improvement](https://github.com/gcfernando/aster/issues)
+- [GitHub repository](https://github.com/gcfernando/aster-windows-calculator)
+- [Report a problem or suggest an improvement](https://github.com/gcfernando/aster-windows-calculator/issues)
 - [Development and testing guide](docs/development.md)
 - [Numeric behavior reference](docs/numeric-behavior.md)
 - [Portable release guide](docs/release-guide.md)

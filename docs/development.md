@@ -7,8 +7,8 @@ Build the Windows calculator, run the engine and persistence tests, inspect hidd
 ## Prerequisites
 
 - Windows for the application, component harness and visible desktop walkthrough.
-- The [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). [global.json](../global.json) selects `10.0.100` with `latestFeature` roll-forward, so later installed .NET 10 feature bands can satisfy it.
-- Git for cloning the repository, and NuGet access on initial restore. [NuGet.Config](../NuGet.Config) configures nuget.org; the xUnit project declares the external test packages.
+- The [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). [global.json](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json) selects `10.0.100` with `latestFeature` roll-forward, so later installed .NET 10 feature bands can satisfy it.
+- Git for cloning the repository, and NuGet access on initial restore. [NuGet.Config](https://github.com/gcfernando/aster-windows-calculator/blob/main/NuGet.Config) configures nuget.org; the xUnit project declares the external test packages.
 - For IDE development, Visual Studio 2026 (18+) with .NET desktop development support. Match the SDK/IDE combination to Microsoft's [SDK and Visual Studio compatibility rules](https://learn.microsoft.com/en-us/dotnet/core/porting/versioning-sdk-msbuild-vs).
 
 Check the selected SDK from inside the checkout:
@@ -18,7 +18,7 @@ dotnet --version
 dotnet --list-sdks
 ```
 
-[Directory.Build.props](../Directory.Build.props) sets C# 14, nullable reference types, implicit usings, deterministic builds and warnings as errors. Application projects have no third-party package references. Keep the existing project and package settings when following these commands.
+[Directory.Build.props](https://github.com/gcfernando/aster-windows-calculator/blob/main/Directory.Build.props) sets C# 14, nullable reference types, implicit usings, deterministic builds and warnings as errors. Application projects have no third-party package references. Keep the existing project and package settings when following these commands.
 
 ## Restore and build
 
@@ -101,11 +101,11 @@ These commands produce local artifacts. Signing, an installer and an in-app upda
 
 For the complete reproducible verification-to-package workflow, follow [the portable release guide](release-guide.md). `Verify-Release.ps1` discovers the engine count, requires complete passing engine/component reports and binds source inputs, test reports and application/test binaries by SHA-256 before and after execution. `Publish-Portable.ps1` validates that evidence, includes LICENSE and documentation, and verifies every archive entry. It produces a fresh local unsigned framework-dependent x64 candidate and does not upload it. Run `tests/ReleaseEvidence.Tests.ps1` for negative evidence-boundary regressions.
 
-The [Windows CI workflow](../.github/workflows/verify.yml) runs these helpers and retains successful packages for 30 days and verification reports for 14 days. Only a passing push to the current `main` commit reaches its separate `contents: write` publication job. `Publish-MainBuild.ps1` checks the downloaded ZIP checksum, verifies the current branch head, and creates or updates the reserved `latest` prerelease. Its tag moves to the published commit; versioned releases are untouched. No personal access token is needed: the job uses GitHub's scoped workflow token. Run `tests/MainBuildRelease.Tests.ps1` for mocked publication-policy regressions; those tests never call GitHub. See the release guide for the permanent link and recovery from failed uploads.
+The [Windows CI workflow](https://github.com/gcfernando/aster-windows-calculator/blob/main/.github/workflows/verify.yml) runs these helpers and retains successful packages for 30 days and verification reports for 14 days. Only a passing push to the current `main` commit reaches its separate `contents: write` publication job. `Publish-MainBuild.ps1` checks the downloaded ZIP checksum, verifies the current branch head, and creates or updates the reserved `latest` prerelease. Its tag moves to the published commit; versioned releases are untouched. No personal access token is needed: the job uses GitHub's scoped workflow token. Run `tests/MainBuildRelease.Tests.ps1` for mocked publication-policy regressions; those tests never call GitHub. See the release guide for the permanent link and recovery from failed uploads.
 
 ## Specialized audit packaging
 
-[Package-Audited.ps1](../tools/Package-Audited.ps1) is a separate acceptance/archive helper. It does not build or run checks. It now requires the same fresh verification manifest as the portable publisher, plus its historical prepared reports, published binaries and corresponding build outputs. It rejects stale source/binaries/reports, compares binary hashes and verifies ZIP entries against their sources.
+[Package-Audited.ps1](https://github.com/gcfernando/aster-windows-calculator/blob/main/tools/Package-Audited.ps1) is a separate acceptance/archive helper. It does not build or run checks. It now requires the same fresh verification manifest as the portable publisher, plus its historical prepared reports, published binaries and corresponding build outputs. It rejects stale source/binaries/reports, compares binary hashes and verifies ZIP entries against their sources.
 
 | Parameter | Current script behavior |
 |---|---|

@@ -8,17 +8,17 @@ Aster works locally without an account, payment, key, activation or feature rest
 
 ## Download the latest main preview
 
-Download **[Aster-win-x64.zip](https://github.com/gcfernando/aster/releases/download/latest/Aster-win-x64.zip)** from the [latest preview release](https://github.com/gcfernando/aster/releases/tag/latest). Extract the complete ZIP and follow the installation steps below. The release notes link to the exact source commit and verification run. The ZIP includes `Aster.exe`, its required companion files, documentation and test evidence. GitHub's automatically generated source-code archives do not contain the runnable application.
+Download **[Aster-win-x64.zip](https://github.com/gcfernando/aster-windows-calculator/releases/download/latest/Aster-win-x64.zip)** from the [latest preview release](https://github.com/gcfernando/aster-windows-calculator/releases/tag/latest). Extract the complete ZIP and follow the installation steps below. The release notes link to the exact source commit and verification run. The ZIP includes `Aster.exe`, its required companion files, documentation and test evidence. GitHub's automatically generated source-code archives do not contain the runnable application.
 
 After a push to `main`, GitHub Actions runs release-helper checks, complete engine/hidden component verification and evidence-bound packaging. A separate job publishes only after those steps pass and the commit still matches the current `main` head. The rolling `latest` tag and assets are reserved for this automation. The download is an **unsigned preview**; versioned stable releases and their acceptance/signing decisions remain separate. GitHub's `/releases/latest` route selects stable releases, so use the explicit preview links above.
 
-Successful runs also retain an **Aster-win-x64** artifact for 30 days and verification reports for 14 days on the [workflow's Actions page](https://github.com/gcfernando/aster/actions/workflows/verify.yml). Downloading workflow artifacts requires a GitHub login. Pull requests and manual workflow runs produce artifacts without publishing; an old rerun cannot replace a newer main preview. Build/test failures leave the existing release alone. Asset replacement is not atomic: if an upload fails, use its complete Actions artifact and rerun the current main workflow's failed jobs. A missing link or checksum mismatch during an update should be retried after publication completes.
+Successful runs also retain an **Aster-win-x64** artifact for 30 days and verification reports for 14 days on the [workflow's Actions page](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml). Downloading workflow artifacts requires a GitHub login. Pull requests and manual workflow runs produce artifacts without publishing; an old rerun cannot replace a newer main preview. Build/test failures leave the existing release alone. Asset replacement is not atomic: if an upload fails, use its complete Actions artifact and rerun the current main workflow's failed jobs. A missing link or checksum mismatch during an update should be retried after publication completes.
 
 The publication job uses only the scoped `GITHUB_TOKEN` with `contents: write`; build and pull-request jobs retain read-only repository permissions. Do not use the reserved `latest` tag for a manual release. The publisher refuses to replace an unmarked, stable or immutable release. If repository policy forbids the moving tag or release writes, publication fails visibly while the verified Actions artifact remains available. No signing certificate or personal access token is stored by this workflow.
 
 ## Prerequisites
 
-- Windows x64, PowerShell 7 and the .NET 10 SDK selected by [global.json](../global.json).
+- Windows x64, PowerShell 7 and the .NET 10 SDK selected by [global.json](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json).
 - A complete repository checkout and access to NuGet for an initial restore.
 - A Windows desktop session for the hidden WinForms harness; see its [methodology and limitations](../tests/ModernCalculator.UiChecks/README.md).
 
@@ -50,7 +50,7 @@ Keep Windows and the installed runtime patched. Framework-dependent applications
 
 The normal profile is `%LOCALAPPDATA%/AsterCalculator/state.json`, or the `ASTER_DATA_DIRECTORY` override. History persistence defaults to off; memory is session-only. Preferences are local. There is no calculation service, automatic telemetry or background update/activation connection. Keep profile backups private if you opt to retain history. A future unsupported schema is preserved and saving is refused, allowing a compatible newer app to reopen it.
 
-F1's Support information exposes local version/build/runtime/culture/theme/DPI information for a user-initiated report. Review copied diagnostics before sharing; calculations, saved history, memory, usernames and profile paths are excluded. Use [the existing issue tracker](https://github.com/gcfernando/aster/issues), providing reproducible sample inputs. No report is sent automatically.
+F1's Support information exposes local version/build/runtime/culture/theme/DPI information for a user-initiated report. Review copied diagnostics before sharing; calculations, saved history, memory, usernames and profile paths are excluded. Use [the existing issue tracker](https://github.com/gcfernando/aster-windows-calculator/issues), providing reproducible sample inputs. No report is sent automatically.
 
 ## Update, rollback and removal
 

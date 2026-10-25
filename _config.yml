@@ -1,7 +1,7 @@
 # GitHub Pages documentation; application settings remain in the calculator.
 url: "https://gcfernando.github.io"
-baseurl: "/aster"
-repository: gcfernando/aster
+baseurl: "/aster-windows-calculator"
+repository: gcfernando/aster-windows-calculator
 title: "Aster Windows Calculator"
 description: "An offline Windows calculator with standard, scientific, programmer, unit conversion and date modes, built with C# and .NET 10."
 lang: en

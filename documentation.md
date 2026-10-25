@@ -23,7 +23,7 @@ Choose the reference for the calculation model, local build or portable Windows 
 
 ## 🔗 Source references
 
-[Solution](ModernCalculator.sln) · [SDK selection](global.json) · [Windows verification workflow](.github/workflows/verify.yml)
+[Solution](https://github.com/gcfernando/aster-windows-calculator/blob/main/ModernCalculator.sln) · [SDK selection](https://github.com/gcfernando/aster-windows-calculator/blob/main/global.json) · [Windows verification workflow](https://github.com/gcfernando/aster-windows-calculator/blob/main/.github/workflows/verify.yml)
 
 Engine tests, hidden component snapshots and visible manual walkthroughs prove different things. Follow the development guide before interpreting an artifact as acceptance evidence.
 
@@ -31,4 +31,4 @@ Engine tests, hidden component snapshots and visible manual walkthroughs prove d
 
 This index is also rendered by the repository's GitHub Pages site. Relative links above point to the authored repository documents; package READMEs target NuGet readers and may use absolute GitHub links.
 
-[Repository](https://github.com/gcfernando/aster) · [Project overview](README.md)
+[Repository](https://github.com/gcfernando/aster-windows-calculator) · [Project overview](README.md)
