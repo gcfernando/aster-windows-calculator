@@ -6,3 +6,26 @@ artifacts/
 .local/
 *.user
 *.suo
+
+# .NET build and IDE output (at any project depth)
+bin/
+obj/
+.vs/
+TestResults/
+*.user
+*.suo
+
+# Shared local files and documentation build caches
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.env
+.env.*
+!.env.example
+!.env.sample
+_site/
+.jekyll-cache/
+.sass-cache/
+.bundle/

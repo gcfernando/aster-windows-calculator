@@ -462,3 +462,7 @@ Aster Calculator is licensed under the **[MIT License](https://github.com/gcfern
 | [Portable release guide](docs/release-guide.md) | Verify and package matching binaries; install, update, roll back and remove the app. |
 
 [Documentation index](documentation.md) collects these guides in one place.
+
+## Repository maintenance
+
+[Contributing](https://github.com/gcfernando/aster-windows-calculator/blob/main/CONTRIBUTING.md) · [Security policy](https://github.com/gcfernando/aster-windows-calculator/blob/main/SECURITY.md) · [Repository standards](https://github.com/gcfernando/aster-windows-calculator/blob/main/REPOSITORY_STANDARDS.md)
