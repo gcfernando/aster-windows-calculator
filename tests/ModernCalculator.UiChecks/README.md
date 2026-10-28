@@ -1,14 +1,22 @@
 <a id="hidden-winforms-component-checks"></a>
 
-# Aster WinForms Component Checks — Running Tests and Reading Reports
+[Aster calculator](../../README.md)
+
+<a id="aster-winforms-component-checks--running-tests-and-reading-reports"></a>
+
+# Aster WinForms Component Checks
 
 This is a dependency-free Windows-only console harness targeting .NET 10 and Windows Forms. It references the application project directly and does not require a test framework or NuGet package.
+
+> **In this guide:** [Get started](#guide-run-the-hidden-checks) · [Walk through the example](#guide-read-the-results) · [Check the limits](#guide-scope-and-limitations)
 
 The harness covers calculator input/state, mode switching, stored results, conversion and date workflows, preferences, layout and rendering. Results belong to a specific executable and run: use that run's `report.json` for counts and outcomes. See [packaged evidence and documentation](../../docs/development.md#packaged-evidence-and-documentation) for how the packaging helper uses these reports and their limits.
 
 For a separate visible walkthrough, [DesktopAudit](../../docs/development.md#run-a-visible-manual-walkthrough) hosts the production MainForm with fresh isolated data under its output `sessions/` directory. It sends no input and does not access the user's normal Aster data. It is optional and separate from this hidden-check executable.
 
 [Run the checks](#run-the-hidden-checks) · [Read the results](#read-the-results) · [Scope and limitations](#scope-and-limitations) · [Scale and DPI](#interpreting-scale-and-dpi)
+
+<a id="guide-run-the-hidden-checks"></a>
 
 ## Run the hidden checks
 
@@ -27,6 +35,8 @@ dotnet run --project tests/ModernCalculator.UiChecks -c Release --no-build -- ar
 ```
 
 Filtering applies as each check is reached. A nested matrix check is reached only when its parent setup runs, so a child-only substring may select nothing. A filter that selects no checks records a `Check selection` failure and returns exit code `1`. Treat a focused run as diagnostic evidence, not as the complete suite.
+
+<a id="guide-read-the-results"></a>
 
 ## Read the results
 
@@ -59,6 +69,8 @@ A filtered run can record `actualDeviceDpi=0` when it bypasses the main matrix t
 Layout eligibility uses the current WinForms runtime's named `Control.GetState(...Visible)` flag and each ancestor's own visibility, excluding the deliberately hidden top-level host. This preserves checks for intended visible controls while excluding collapsed result captions, unnecessary pager buttons and unused unit-page slots. It does not use `Control.Visible`, which is false for every child of a hidden form. If the runtime's visibility-state API cannot be identified, checks fail explicitly. Display diagnostics also record this component visibility.
 
 The harness explicitly creates hidden handles for newly attached modes before rendering. Main-form preparation calls the same public working-area sizing method used by the real launch path after hidden handle creation and before relative scaling; it does not invoke `Show` or claim to execute the full form-load lifecycle. MainForm PNGs capture its client-layout root directly. Native style bits retained for Windows snap/resize can cause hidden `Form.DrawToBitmap` to synthesize an OS caption absent from the displayed borderless form; client-root capture avoids presenting that artifact as application chrome. Window/client sizing and viewport assertions still inspect the actual form. Snapshot render probes sample enabled text-bearing custom button regions inside the expected mode, excluding headers/navigation, and fail when the expected center content is blank. Disabled buttons remain covered by accessibility and layout checks but are excluded from the paint-contrast probe. If coarse two-pixel sampling finds fewer than eight contrasting pixels, the same inset region receives full-pixel sampling before declaring it blank; the eight-pixel threshold remains unchanged so tiny chevrons cannot disappear between sample points. `renderDiagnostics` records probe counts; PNGs are retained even when the probe fails. Native-textbox-only font snapshots have no custom button probe and are identified accordingly.
+
+<a id="guide-scope-and-limitations"></a>
 
 ## Scope and limitations
 

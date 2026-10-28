@@ -28,8 +28,8 @@ defaults:
   - scope:
       path: "README.md"
     values:
-      title: "Aster: Offline Windows Calculator with C# and .NET 10"
-      description: "Use Aster for arithmetic, scientific expressions, programmer calculations, unit conversion and dates. Build the offline Windows Forms app from source."
+      title: "Aster — Offline Windows Calculator"
+      description: "Calculate offline with Aster: arithmetic, scientific expressions, programmer tools, unit conversions and dates in a C# and .NET 10 Windows Forms app."
       image: /docs/images/standard-light.png
   - scope:
       path: "docs/development.md"
@@ -44,5 +44,5 @@ defaults:
   - scope:
       path: "tests/ModernCalculator.UiChecks/README.md"
     values:
-      title: "Aster WinForms Component Checks: Run Tests and Read Reports"
-      description: "Run Aster's hidden Windows Forms component harness, filter checks and interpret reports, snapshots, layout diagnostics and DPI simulations."
+      title: "Aster WinForms Component Checks"
+      description: "Run Aster's Windows Forms component harness, filter checks and interpret reports, snapshots, layout diagnostics and DPI simulations."

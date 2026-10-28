@@ -4,11 +4,19 @@
 
 <a id="-aster--offline-windows-calculator"></a>
 
+<div align="center" markdown="1">
+
 # Aster — Offline Windows Calculator
 
-**Read online:** [Documentation website](https://gcfernando.github.io/aster-windows-calculator/) · [All guides](documentation.md)
+<p align="center"><strong>Five calculator modes. One focused Windows workspace.</strong></p>
 
-<p align="center"><strong>A thoughtful space for everyday calculation.</strong></p>
+[![Repository standards](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/repository-standards.yml/badge.svg)](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/repository-standards.yml) [![Read the documentation](https://img.shields.io/badge/Read-the_documentation-2563eb?style=flat-square)](https://gcfernando.github.io/aster-windows-calculator/)
+
+</div>
+
+> **Start here:** [Get started](#guide-quick-start) · [Explore the interface](#guide-desktop-interface) · [Precision and limits](#guide-numeric-behavior-and-limits) · [Build and test](#guide-development-and-testing)
+
+**Read online:** [Documentation website](https://gcfernando.github.io/aster-windows-calculator/) · [All guides](documentation.md)
 
 **Aster is an offline Windows calculator for everyday arithmetic, scientific expressions, programmer calculations, unit conversions and date arithmetic.** Its native Windows Forms interface keeps five modes, searchable history and reusable results in one workspace.
 
@@ -77,6 +85,8 @@ Choose Aster for local numerical work that benefits from these modes and result 
 
 <a id="readme-gui"></a>
 
+<a id="guide-desktop-interface"></a>
+
 ## 🖥️ Desktop interface
 
 The desktop interface is implemented in [ModernCalculator.WinForms](https://github.com/gcfernando/aster-windows-calculator/tree/main/src/ModernCalculator.WinForms), uses the Core calculation engines and Infrastructure state store, and publishes as **`Aster.exe`**.
@@ -123,6 +133,8 @@ Results are selectable and read-only. Long values fit, wrap and use explicit dig
 Select a gallery image to view it at full size. These real repository assets are **hidden WinForms component snapshots** of the application's client layout, produced by the UI harness. They are interface previews, not desktop recordings or evidence of physical-input, window-manager or native DPI testing.
 
 <a id="readme-quick-start"></a>
+
+<a id="guide-quick-start"></a>
 
 ## 🚀 Quick start
 
@@ -258,6 +270,8 @@ Preferences → Window also offers **Ctrl+Alt+1–5** for mode switching. Enter 
 
 <a id="readme-numeric-behavior"></a>
 
+<a id="guide-numeric-behavior-and-limits"></a>
+
 ## 🔬 Numeric behavior and limits
 
 | Engine | Precision and contract |
@@ -330,6 +344,8 @@ Original vector icons and a bundled multi-resolution executable icon provide the
 <a id="-testing-and-development"></a>
 
 <a id="readme-development"></a>
+
+<a id="guide-development-and-testing"></a>
 
 ## 🧪 Development and testing
 
