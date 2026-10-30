@@ -143,7 +143,7 @@ function Copy-ReleaseDocumentation([string]$Root, [string]$Folder) {
             $kind = if (Test-Path -LiteralPath $original -PathType Container) { 'tree' } else { 'blob' }
             $encoded = ($repoPath.Split('/') | ForEach-Object { [Uri]::EscapeDataString($_) }) -join '/'
             $fragment = if ($parts.Count -gt 1) { '#' + $parts[1] } else { '' }
-            return $match.Groups[1].Value + "https://github.com/gcfernando/aster/$kind/main/$encoded$fragment" + $match.Groups[3].Value
+            return $match.Groups[1].Value + "https://github.com/gcfernando/aster-windows-calculator/$kind/main/$encoded$fragment" + $match.Groups[3].Value
         })
         [IO.File]::WriteAllText($file.FullName, $content, [Text.UTF8Encoding]::new($false))
     }

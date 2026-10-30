@@ -29,3 +29,5 @@ _site/
 .jekyll-cache/
 .sass-cache/
 .bundle/
+# Python release-policy test bytecode
+.github/scripts/__pycache__/

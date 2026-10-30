@@ -5,14 +5,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: verify-${{ github.workflow }}-${{ github.ref }}
-  # Let a main release upload finish before another main run starts.
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+# No branch-level concurrency: each main push keeps its own release.
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -20,6 +17,16 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Repository and publication policy checks
+        shell: pwsh
+        run: |
+          python .github/scripts/check_repository.py
+          if ($LASTEXITCODE -ne 0) { throw 'Repository standards failed.' }
+          python -m unittest discover -s .github/scripts -p test_publish_main_release.py -v
+          if ($LASTEXITCODE -ne 0) { throw 'Publication policy checks failed.' }
       - name: Release helper regressions
         shell: pwsh
         run: |
@@ -61,19 +68,25 @@ jobs:
     needs: windows
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: Aster-win-x64
           path: artifacts/main-download
-      - name: Update latest main preview download
-        shell: pwsh
+      - name: Publish this successful main push
         env:
           GH_TOKEN: ${{ github.token }}
-        run: ./tools/Publish-MainBuild.ps1 -PackageDirectory artifacts/main-download
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(python -c "import xml.etree.ElementTree as E; print(E.parse('src/ModernCalculator.WinForms/ModernCalculator.WinForms.csproj').findtext('.//Version'))")
+          python .github/scripts/publish_main_release.py --project Aster --version "$version" artifacts/main-download/Aster-win-x64.zip
