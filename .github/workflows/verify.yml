@@ -8,8 +8,10 @@ permissions:
 # No branch-level concurrency: each main push keeps its own release.
 jobs:
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2025
     timeout-minutes: 45
+    env:
+      ASTER_SIGNING_ENABLED: ${{ vars.ASTER_SIGNING_ENABLED }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -23,6 +25,7 @@ jobs:
       - name: Repository and publication policy checks
         shell: pwsh
         run: |
+          if ([string]$env:ASTER_SIGNING_ENABLED -cnotin @('', 'false', 'true')) { throw 'ASTER_SIGNING_ENABLED must be empty, false or true.' }
           python .github/scripts/check_repository.py
           if ($LASTEXITCODE -ne 0) { throw 'Repository standards failed.' }
           python -m unittest discover -s .github/scripts -p test_publish_main_release.py -v
@@ -33,6 +36,7 @@ jobs:
           ./tests/PackageEvidence.Tests.ps1
           ./tests/ReleaseEvidence.Tests.ps1
           ./tests/MainBuildRelease.Tests.ps1
+          ./tests/SigningEvidence.Tests.ps1
       - name: Build and complete engine/component verification
         shell: pwsh
         run: ./tools/Verify-Release.ps1
@@ -64,9 +68,88 @@ jobs:
           path: artifacts/ReleaseVerification/
           if-no-files-found: warn
           retention-days: 14
-  publish-main:
+  sign:
     needs: windows
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ASTER_SIGNING_ENABLED == 'true'
+    runs-on: windows-2025
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_CORE_OUTPUT: none
+      AZURE_CLIENT_ID: ${{ vars.ASTER_SIGNING_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.ASTER_SIGNING_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.ASTER_SIGNING_SUBSCRIPTION_ID }}
+      ASTER_SIGNING_ENDPOINT: ${{ vars.ASTER_SIGNING_ENDPOINT }}
+      ASTER_SIGNING_ACCOUNT: ${{ vars.ASTER_SIGNING_ACCOUNT }}
+      ASTER_SIGNING_PROFILE: ${{ vars.ASTER_SIGNING_PROFILE }}
+      ASTER_SIGNING_PUBLISHER: ${{ vars.ASTER_SIGNING_PUBLISHER }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require complete public-trust signing configuration
+        shell: pwsh
+        run: |
+          foreach ($name in @('AZURE_CLIENT_ID','AZURE_TENANT_ID','AZURE_SUBSCRIPTION_ID','ASTER_SIGNING_ENDPOINT','ASTER_SIGNING_ACCOUNT','ASTER_SIGNING_PROFILE','ASTER_SIGNING_PUBLISHER')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Missing signing variable: $name" }
+          }
+          foreach ($name in @('AZURE_CLIENT_ID','AZURE_TENANT_ID','AZURE_SUBSCRIPTION_ID')) {
+            $parsed = [guid]::Empty
+            if (-not [guid]::TryParse([Environment]::GetEnvironmentVariable($name), [ref]$parsed)) { throw "Invalid signing identity: $name" }
+          }
+          if ($env:ASTER_SIGNING_ENDPOINT -notmatch '^https://[a-z0-9]+\.codesigning\.azure\.net/?$') { throw 'Unexpected Artifact Signing endpoint.' }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: Aster-win-x64
+          path: artifacts/unsigned
+      - name: Verify and stage the tested unsigned package
+        shell: pwsh
+        run: |
+          . ./tools/SignedRelease.ps1
+          Expand-VerifiedSigningPackage -Archive artifacts/unsigned/Aster-win-x64.zip -Checksum artifacts/unsigned/SHA256SUMS.txt -Destination artifacts/signing-payload
+      - name: Authenticate with the main-branch signing identity
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - name: Sign and timestamp only Aster application binaries
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2
+        with:
+          endpoint: ${{ env.ASTER_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ env.ASTER_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ env.ASTER_SIGNING_PROFILE }}
+          files: |
+            ${{ github.workspace }}\artifacts\signing-payload\Aster.exe
+            ${{ github.workspace }}\artifacts\signing-payload\Aster.dll
+            ${{ github.workspace }}\artifacts\signing-payload\ModernCalculator.Core.dll
+            ${{ github.workspace }}\artifacts\signing-payload\ModernCalculator.Infrastructure.dll
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Verify publisher, signatures and unchanged application content
+        shell: pwsh
+        run: |
+          . ./tools/SignedRelease.ps1
+          Complete-SignedRelease -Folder artifacts/signing-payload -ArchivePath artifacts/signed/Aster-win-x64.zip -ExpectedPublisher $env:ASTER_SIGNING_PUBLISHER
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Aster-win-x64-signed
+          path: |
+            artifacts/signed/Aster-win-x64.zip
+            artifacts/signed/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+  publish-main:
+    needs: [windows, sign]
+    # An enabled signing job must succeed. Never fall back to unsigned on failure.
+    if: >-
+      always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.windows.result == 'success' &&
+      (needs.sign.result == 'success' ||
+      (needs.sign.result == 'skipped' && vars.ASTER_SIGNING_ENABLED != 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -80,13 +163,16 @@ jobs:
           python-version: '3.12'
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: Aster-win-x64
+          name: ${{ needs.sign.result == 'success' && 'Aster-win-x64-signed' || 'Aster-win-x64' }}
           path: artifacts/main-download
       - name: Publish this successful main push
         env:
           GH_TOKEN: ${{ github.token }}
+          ASTER_SIGNED_PACKAGE: ${{ needs.sign.result == 'success' && 'true' || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
           version=$(python -c "import xml.etree.ElementTree as E; print(E.parse('src/ModernCalculator.WinForms/ModernCalculator.WinForms.csproj').findtext('.//Version'))")
-          python .github/scripts/publish_main_release.py --project Aster --version "$version" artifacts/main-download/Aster-win-x64.zip
+          signing_args=()
+          if [[ "$ASTER_SIGNED_PACKAGE" == 'true' ]]; then signing_args+=(--signed); fi
+          python .github/scripts/publish_main_release.py --project Aster --version "$version" "${signing_args[@]}" artifacts/main-download/Aster-win-x64.zip

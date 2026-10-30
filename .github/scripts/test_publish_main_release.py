@@ -1,8 +1,11 @@
 """Release publication policy tests use a fake API and never contact GitHub."""
 
 import copy
+import hashlib
+import json
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 import publish_main_release as release
@@ -171,6 +174,66 @@ class PublicationTests(unittest.TestCase):
         with self.assertRaises(release.ReleaseError):
             release.publish(self.api, ENV, "Audio8D", "1.0.0", [self.package])
         self.assertEqual(self.api.calls, [])
+
+    def signed_fixture(self, edit=None, version="1.0.0"):
+        names = ["Aster.exe", "Aster.dll", "ModernCalculator.Core.dll", "ModernCalculator.Infrastructure.dll"]
+        payload = {name: ("signed fixture " + name).encode() for name in names}
+        records = [{"path": name, "sha256": hashlib.sha256(data).hexdigest()} for name, data in payload.items()]
+        manifest = {"version": version, "files": records, "signing": {
+            "status": "Authenticode signed", "publisher": "CN=Fixture publisher",
+            "files": [{"path": record["path"], "unsignedSha256": "a" * 64,
+                       "signedSha256": record["sha256"], "authenticodeContentSha256": "b" * 64,
+                       "signerThumbprint": "c" * 40, "timestampSignerSubject": "CN=Fixture timestamp"}
+                      for record in records],
+        }}
+        if edit:
+            edit(manifest, payload)
+        with zipfile.ZipFile(self.package, "w") as archive:
+            for name, data in payload.items():
+                archive.writestr(name, data)
+            archive.writestr("package-manifest.json", json.dumps(manifest))
+
+    def test_signed_release_notes_require_complete_verified_artifact(self):
+        self.signed_fixture(version="1.0.0+source")
+        release.publish(self.api, ENV, "Aster", "1.0.0", [self.package], signed=True)
+        self.assertIn("Signing status: Authenticode signed.", self.api.release["body"])
+        self.assertIn("CN=Fixture publisher", self.api.release["body"])
+        self.assertIn("SmartScreen reputation warning", self.api.release["body"])
+        self.assertNotIn("unsigned automated preview builds", self.api.release["body"])
+
+    def test_unsigned_notes_explain_smartscreen_is_still_possible(self):
+        self.publish()
+        self.assertIn("unsigned automated preview builds", self.api.release["body"])
+        self.assertIn("public-trust signing identity is required", self.api.release["body"])
+
+    def test_signed_request_rejects_unsigned_or_invalid_package_before_github(self):
+        with self.assertRaises(release.ReleaseError):
+            release.publish(self.api, ENV, "Aster", "1.0.0", [self.package], signed=True)
+        self.assertEqual(self.api.calls, [])
+
+    def test_signed_request_rejects_changed_incomplete_or_wrong_identity(self):
+        edits = [
+            lambda m, p: p.update({"Aster.exe": b"changed after verification"}),
+            lambda m, p: m["signing"]["files"].pop(),
+            lambda m, p: m["signing"].update({"publisher": ""}),
+            lambda m, p: m.update({"version": "2.0.0"}),
+            lambda m, p: m["signing"]["files"][0].update({"timestampSignerSubject": ""}),
+            lambda m, p: p.update({"unverified.txt": b"extra"}),
+        ]
+        for edit in edits:
+            with self.subTest(edit=edit):
+                self.signed_fixture(edit)
+                with self.assertRaises(release.ReleaseError):
+                    release.publish(self.api, ENV, "Aster", "1.0.0", [self.package], signed=True)
+                self.assertEqual(self.api.calls, [])
+
+    def test_rerun_cannot_change_existing_release_signing_classification(self):
+        self.publish()
+        self.signed_fixture()
+        self.api.calls.clear()
+        with self.assertRaises(release.ReleaseError):
+            release.publish(self.api, ENV, "Aster", "1.0.0", [self.package], signed=True)
+        self.assertTrue(all(call[0] == "GET" for call in self.api.calls))
 
 
 if __name__ == "__main__":

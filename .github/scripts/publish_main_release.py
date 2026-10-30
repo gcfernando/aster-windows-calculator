@@ -11,6 +11,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 from pathlib import Path
 
 
@@ -135,7 +136,53 @@ def find_release(api, tag: str, encoded_tag: str):
         page += 1
 
 
-def publish(api, environment: dict[str, str], project: str, version: str, packages: list[Path]):
+def signed_package_publisher(package: Path, version: str) -> str:
+    """Check the artifact produced by the Windows signature-verification job.
+
+    Authenticode trust is verified on Windows, not reconstructed from JSON here.
+    This boundary checks that its manifest still describes the uploaded bytes.
+    """
+    required = {"Aster.exe", "Aster.dll", "ModernCalculator.Core.dll", "ModernCalculator.Infrastructure.dll"}
+    try:
+        with zipfile.ZipFile(package) as archive:
+            names = archive.namelist()
+            if len({name.casefold() for name in names}) != len(names):
+                raise ReleaseError("Signed package contains duplicate paths")
+            manifest = json.loads(archive.read("package-manifest.json").decode("utf-8-sig"))
+            signing = manifest["signing"]
+            publisher = signing["publisher"]
+            if (
+                signing["status"] != "Authenticode signed"
+                or not isinstance(publisher, str) or not publisher.strip()
+                or "\n" in publisher or "\r" in publisher
+                or manifest["version"].split("+", 1)[0] != version
+            ):
+                raise ReleaseError("Signed package identity does not match the release")
+            files = manifest["files"]
+            records = {record["path"]: record for record in files}
+            if len(records) != len(files) or set(records) != set(names) - {"package-manifest.json"}:
+                raise ReleaseError("Signed package has an incomplete file manifest")
+            for name, record in records.items():
+                if hashlib.sha256(archive.read(name)).hexdigest() != record["sha256"]:
+                    raise ReleaseError("Signed package file hash does not match its manifest")
+            signed_files = signing["files"]
+            by_name = {record["path"]: record for record in signed_files}
+            if len(by_name) != len(signed_files) or set(by_name) != required:
+                raise ReleaseError("Signed package does not cover every application binary")
+            for name, record in by_name.items():
+                if (
+                    record["signedSha256"] != records[name]["sha256"]
+                    or not re.fullmatch(r"[a-f0-9]{64}", record["unsignedSha256"])
+                    or not re.fullmatch(r"[a-f0-9]{64}", record["authenticodeContentSha256"])
+                    or not record["signerThumbprint"] or not record["timestampSignerSubject"]
+                ):
+                    raise ReleaseError("Signed package has invalid signing evidence")
+            return publisher
+    except (OSError, zipfile.BadZipFile, KeyError, TypeError, ValueError, AttributeError) as exc:
+        raise ReleaseError("Signed package verification evidence is missing or invalid") from exc
+
+
+def publish(api, environment: dict[str, str], project: str, version: str, packages: list[Path], *, signed=False):
     repository, commit, run, tag, marker = identity(environment, version)
     expected = {"Aster": 1, "Audio8D": 2}
     if project not in expected or len(packages) != expected[project]:
@@ -155,6 +202,9 @@ def publish(api, environment: dict[str, str], project: str, version: str, packag
     for package in packages:
         if not package.is_file() or package.stat().st_size <= 0:
             raise ReleaseError("A required package is missing or empty")
+    if signed and project != "Aster":
+        raise ReleaseError("Signed publication is supported only for Aster")
+    publisher = signed_package_publisher(packages[0], version) if signed else None
     checksum = packages[0].parent / "SHA256SUMS.txt"
     checksum.write_text(
         "".join(f"{sha256(package)}  {package.name}\n" for package in sorted(packages)),
@@ -173,6 +223,7 @@ def publish(api, environment: dict[str, str], project: str, version: str, packag
             or marker not in release.get("body", "")
             or release.get("target_commitish") != commit
             or release.get("prerelease") is not True
+            or ("Signing status: Authenticode signed." in release.get("body", "")) != signed
         ):
             raise ReleaseError("Refusing to modify a release not owned by this push")
         if not release.get("draft"):
@@ -193,12 +244,23 @@ def publish(api, environment: dict[str, str], project: str, version: str, packag
         "are bundled. FFmpeg and the bundled libraries retain their own licenses; "
         "see THIRD-PARTY-NOTICES.md and licenses/ in the package. macOS is not built."
     )
+    signing_notes = (
+        "Signing status: Authenticode signed. These are **signed automated preview builds**. "
+        f"The Windows signing job verified publisher `{publisher}`, trusted Authenticode "
+        "signatures, timestamps and unchanged application content before packaging. "
+        "A new publisher or file may still receive a SmartScreen reputation warning. "
+        if signed else
+        "These are **unsigned automated preview builds**. They have no trusted publisher "
+        "signature and Windows may show an Unknown publisher / SmartScreen warning. "
+        "Signing support alone does not remove that warning; a configured public-trust "
+        "signing identity is required. "
+    )
     notes = (
         f"{marker}\n\nBuilt from main commit [{commit}]"
         f"(https://github.com/{repository}/commit/{commit}).\n\n"
         f"[Required checks and package verification](https://github.com/{repository}/actions/runs/{run}).\n\n"
-        f"{instructions}\n\nThese are **unsigned automated preview builds**. "
-        "They are not signed or notarized. SHA256SUMS.txt records each application "
+        f"{instructions}\n\n{signing_notes}"
+        "SHA256SUMS.txt records each application "
         "ZIP's SHA-256 checksum. Source-code archives are not runnable downloads.\n\n"
         f"Release identity: `{tag}`. Application base version: `{version}`. "
         "Each successful main push keeps its own release; reruns retain an already "
@@ -243,6 +305,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True, choices=("Aster", "Audio8D"))
     parser.add_argument("--version", required=True)
+    parser.add_argument("--signed", action="store_true", help="Require the Windows-verified signed Aster artifact")
     parser.add_argument("packages", nargs="+", type=Path)
     args = parser.parse_args()
     try:
@@ -250,7 +313,7 @@ def main() -> int:
         token = os.environ.get("GH_TOKEN", "")
         if not token:
             raise ReleaseError("GH_TOKEN is required")
-        url, status = publish(GitHub(repository, token), dict(os.environ), args.project, args.version, args.packages)
+        url, status = publish(GitHub(repository, token), dict(os.environ), args.project, args.version, args.packages, signed=args.signed)
         print(f"{status}: {url}")
         if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
             with Path(summary).open("a", encoding="utf-8") as target:

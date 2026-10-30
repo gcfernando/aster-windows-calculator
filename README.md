@@ -31,7 +31,7 @@ Open the [application releases](https://github.com/gcfernando/aster-windows-calc
 
 4. Extract the entire ZIP to a writable folder and run `Aster.exe`. Keep its companion files together.
 
-The portable package is **unsigned** and does not bundle the .NET runtime. Use a Windows x64 edition supported by .NET 10; see Microsoft's [supported operating systems](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Download only packages you trust. See the [release guide](docs/release-guide.md) for updates, rollback and removal.
+Release notes state whether a package is signed. Without a configured trusted signing identity, releases are **unsigned** and Windows may show **Unknown publisher** or a SmartScreen warning. The portable package does not bundle the .NET runtime. Use a Windows x64 edition supported by .NET 10; see Microsoft's [supported operating systems](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Download only packages you trust. See the [release guide](docs/release-guide.md) for updates, rollback and removal.
 
 ## Use Aster
 
@@ -76,13 +76,14 @@ The placeholder `<run>` must be replaced with that run's actual directory name. 
 
 ## Automated releases
 
-The [verification workflow](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml) is configured to publish a separate unsigned preview for every successful push to `main`, after verification, packaging and publication-policy tests pass. The release tag is `v<base-version>-main.<run-id>.<full-commit-sha>`. Different pushes retain different releases; no branch-level concurrency cancels or discards an earlier push.
+The [verification workflow](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml) publishes a separate preview for every successful push to `main`, after verification, packaging and publication-policy tests pass. Builds remain unsigned while signing is disabled. Maintainers can enable the [public-trust signing pipeline](docs/code-signing.md) after configuring a trusted identity; enabled signing must succeed before publication. The release tag is `v<base-version>-main.<run-id>.<full-commit-sha>`. Different pushes retain different releases; no branch-level concurrency cancels or discards an earlier push. Application version remains **1.0.0**.
 
 Packages and their SHA-256 manifest are uploaded to a draft first. Publication follows successful upload verification. A rerun can recover its own interrupted draft; an already published release is verified and retained. Pull requests and manual runs produce artifacts without publication. Existing versioned releases and the legacy rolling `latest` preview are preserved. The [release guide](docs/release-guide.md) describes permissions, signing and remaining manual acceptance checks.
 
 ## Troubleshooting
 
 - **The app does not start:** install the .NET 10 **Desktop** Runtime for x64 and extract all ZIP contents. The SDK is needed only for building.
+- **Windows protected your PC / Unknown publisher:** check the release's signing status. Signing support requires a configured trusted publisher; a GitHub release label or checksum cannot remove this warning. A newly signed app may still need to establish reputation. See [signing and SmartScreen](docs/code-signing.md).
 - **A result differs from another calculator:** check the active mode, degree/radian setting, integer width and [precision rules](docs/numeric-behavior.md).
 - **Preferences or history cannot be saved:** check that the local data folder is writable and review the recovery guidance before changing `state.json`.
 - **A release or asset is missing:** use a complete earlier release and inspect the [workflow runs](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml). A failed build does not publish a partial application release.
