@@ -76,7 +76,7 @@ The placeholder `<run>` must be replaced with that run's actual directory name. 
 
 ## Automated releases
 
-The [verification workflow](.github/workflows/verify.yml) is configured to publish a separate unsigned preview for every successful push to `main`, after verification, packaging and publication-policy tests pass. The release tag is `v<base-version>-main.<run-id>.<full-commit-sha>`. Different pushes retain different releases; no branch-level concurrency cancels or discards an earlier push.
+The [verification workflow](https://github.com/gcfernando/aster-windows-calculator/actions/workflows/verify.yml) is configured to publish a separate unsigned preview for every successful push to `main`, after verification, packaging and publication-policy tests pass. The release tag is `v<base-version>-main.<run-id>.<full-commit-sha>`. Different pushes retain different releases; no branch-level concurrency cancels or discards an earlier push.
 
 Packages and their SHA-256 manifest are uploaded to a draft first. Publication follows successful upload verification. A rerun can recover its own interrupted draft; an already published release is verified and retained. Pull requests and manual runs produce artifacts without publication. Existing versioned releases and the legacy rolling `latest` preview are preserved. The [release guide](docs/release-guide.md) describes permissions, signing and remaining manual acceptance checks.
 
