@@ -222,4 +222,43 @@ $line=[IO.File]::ReadAllText((Join-Path ([IO.Path]::GetDirectoryName($result)) '
 Assert-True ($line -ceq ((Get-FileHash -LiteralPath $result).Hash.ToLowerInvariant()+'  Aster-win-x64.zip')) 'Final archive checksum is wrong.'
 Assert-Rejected {Finish-Case $case} 'An existing signed archive/checksum was overwritten.'
 $script:mockSignature=$null
+# Provider archives cannot replace metadata or partially change staged files on rejection.
+foreach($mode in @('valid','missing','extra','case','duplicate','traversal','symlink','crc')) {
+    $case=New-PackageCase; $null=Stage-Case $case
+    $returned=Join-Path $case.Root 'provider.zip'
+    $zip=[IO.Compression.ZipFile]::Open($returned,[IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach($name in $script:AsterAuthenticodeTargets) {
+            if($mode -eq 'missing' -and $name -ceq 'Aster.exe'){continue}
+            $member=if($mode -eq 'case' -and $name -ceq 'Aster.exe'){'ASTER.EXE'}elseif($mode -eq 'traversal' -and $name -ceq 'Aster.exe'){'../Aster.exe'}else{$name}
+            $entry=$zip.CreateEntry($member)
+            if($mode -eq 'symlink' -and $name -ceq 'Aster.exe'){$entry.ExternalAttributes=([int]0xa000 -shl 16)}
+            $stream=$entry.Open()
+            try {$bytes=Add-SyntheticCertificateTable (New-PeBytes);$stream.Write($bytes,0,$bytes.Length)} finally {$stream.Dispose()}
+        }
+        if($mode -in @('extra','duplicate')) {
+            $entry=$zip.CreateEntry($(if($mode -eq 'duplicate'){'Aster.exe'}else{'package-manifest.json'}))
+            $stream=$entry.Open();try{$stream.WriteByte(42)}finally{$stream.Dispose()}
+        }
+    } finally {$zip.Dispose()}
+    if($mode -eq 'crc') {
+        $bytes=[IO.File]::ReadAllBytes($returned)
+        for($i=0;$i -lt $bytes.Length-20;$i++) {
+            if([BitConverter]::ToUInt32($bytes,$i) -eq 0x02014b50){$bytes[$i+16]=$bytes[$i+16] -bxor 1;break}
+        }
+        [IO.File]::WriteAllBytes($returned,$bytes)
+    }
+    $before=@(Get-SigningFileRecords $case.Destination)|ConvertTo-Json -Compress
+    if($mode -eq 'valid') {
+        Import-SignPathPayload -Archive $returned -Folder $case.Destination
+        $script:mockSignature=New-MockSignature
+        $null=Finish-Case $case
+        $package=[IO.File]::ReadAllText((Join-Path $case.Destination 'package-manifest.json'))|ConvertFrom-Json
+        Assert-True ($package.version -ceq '1.0.0' -and $package.signing.status -ceq 'Authenticode signed') 'Imported provider output failed final content validation.'
+        $script:mockSignature=$null
+    } else {
+        Assert-Rejected {Import-SignPathPayload -Archive $returned -Folder $case.Destination} "Invalid provider output accepted: $mode"
+        Assert-True ((@(Get-SigningFileRecords $case.Destination)|ConvertTo-Json -Compress) -ceq $before) 'Rejected provider ZIP changed staged content.'
+    }
+}
 Write-Output "PASS: $script:checks signing evidence checks. No certificate created, no application executed; positive signing metadata was mocked. Fixtures: $script:fixtureRoot"

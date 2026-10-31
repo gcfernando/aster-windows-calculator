@@ -33,6 +33,8 @@ Open the [application releases](https://github.com/gcfernando/aster-windows-calc
 
 Release notes state whether a package is signed. Without a configured trusted signing identity, releases are **unsigned** and Windows may show **Unknown publisher** or a SmartScreen warning. The portable package does not bundle the .NET runtime. Use a Windows x64 edition supported by .NET 10; see Microsoft's [supported operating systems](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md). Download only packages you trust. See the [release guide](docs/release-guide.md) for updates, rollback and removal.
 
+The proposed [Code signing policy](docs/code-signing.md#code-signing-policy) describes the free SignPath Foundation route; enrollment has not been submitted and no provider approval exists. Aster remains free to use without purchasing a certificate, and signing cannot guarantee that SmartScreen will never warn.
+
 ## Use Aster
 
 Choose a mode from the sidebar, enter the values and use the result in place or copy it for another task.

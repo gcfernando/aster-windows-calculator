@@ -5,5 +5,7 @@
     <LangVersion>14.0</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
+    <Product>Aster Calculator</Product>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 </Project>

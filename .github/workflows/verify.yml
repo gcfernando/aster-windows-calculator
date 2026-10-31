@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 45
     env:
       ASTER_SIGNING_ENABLED: ${{ vars.ASTER_SIGNING_ENABLED }}
+      ASTER_SIGNING_PROVIDER: ${{ vars.ASTER_SIGNING_PROVIDER }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,6 +27,7 @@ jobs:
         shell: pwsh
         run: |
           if ([string]$env:ASTER_SIGNING_ENABLED -cnotin @('', 'false', 'true')) { throw 'ASTER_SIGNING_ENABLED must be empty, false or true.' }
+          if ([string]$env:ASTER_SIGNING_PROVIDER -cnotin @('', 'azure', 'signpath')) { throw 'ASTER_SIGNING_PROVIDER must be empty, azure or signpath.' }
           python .github/scripts/check_repository.py
           if ($LASTEXITCODE -ne 0) { throw 'Repository standards failed.' }
           python -m unittest discover -s .github/scripts -p test_publish_main_release.py -v
@@ -70,7 +72,7 @@ jobs:
           retention-days: 14
   sign:
     needs: windows
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ASTER_SIGNING_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ASTER_SIGNING_ENABLED == 'true' && vars.ASTER_SIGNING_PROVIDER != 'signpath'
     runs-on: windows-2025
     timeout-minutes: 20
     permissions:
@@ -142,14 +144,89 @@ jobs:
             artifacts/signed/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
+  signpath:
+    needs: windows
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ASTER_SIGNING_ENABLED == 'true' && vars.ASTER_SIGNING_PROVIDER == 'signpath'
+    runs-on: windows-2025
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    env:
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.ASTER_SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.ASTER_SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_POLICY_SLUG: ${{ vars.ASTER_SIGNPATH_POLICY_SLUG }}
+      SIGNPATH_ARTIFACT_SLUG: ${{ vars.ASTER_SIGNPATH_ARTIFACT_SLUG }}
+      ASTER_SIGNING_PUBLISHER: ${{ vars.ASTER_SIGNING_PUBLISHER }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require approved SignPath configuration
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.ASTER_SIGNPATH_API_TOKEN }}
+        run: |
+          foreach ($name in @('SIGNPATH_ORGANIZATION_ID','SIGNPATH_PROJECT_SLUG','SIGNPATH_POLICY_SLUG','SIGNPATH_ARTIFACT_SLUG','ASTER_SIGNING_PUBLISHER','SIGNPATH_API_TOKEN')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Missing signing configuration: $name" }
+          }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: Aster-win-x64
+          path: artifacts/unsigned
+      - name: Stage only verified application binaries for SignPath
+        shell: pwsh
+        run: |
+          . ./tools/SignedRelease.ps1
+          $staged = Expand-VerifiedSigningPackage -Archive artifacts/unsigned/Aster-win-x64.zip -Checksum artifacts/unsigned/SHA256SUMS.txt -Destination artifacts/signing-payload
+          [void][IO.Directory]::CreateDirectory('artifacts/signpath-input')
+          foreach ($file in $staged.Files) { Copy-Item -LiteralPath $file -Destination artifacts/signpath-input }
+      - name: Upload verifiable SignPath input
+        id: signing-input
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Aster-signpath-input
+          path: artifacts/signpath-input/*
+          if-no-files-found: error
+          retention-days: 7
+      - name: Request approved signing and wait for manual authorization
+        uses: SignPath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.ASTER_SIGNPATH_API_TOKEN }}
+          organization-id: ${{ env.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_SLUG }}
+          github-artifact-id: ${{ steps.signing-input.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 1800
+          output-artifact-directory: artifacts/signpath-returned
+          skip-decompress: true
+      - name: Verify SignPath publisher and unchanged application content
+        shell: pwsh
+        run: |
+          . ./tools/SignedRelease.ps1
+          $returned = @(Get-ChildItem -LiteralPath artifacts/signpath-returned -Force)
+          if ($returned.Count -ne 1 -or $returned[0].PSIsContainer) { throw 'Expected exactly one returned SignPath archive.' }
+          Import-SignPathPayload -Archive $returned[0].FullName -Folder artifacts/signing-payload
+          Complete-SignedRelease -Folder artifacts/signing-payload -ArchivePath artifacts/signed/Aster-win-x64.zip -ExpectedPublisher $env:ASTER_SIGNING_PUBLISHER
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Aster-win-x64-signed
+          path: |
+            artifacts/signed/Aster-win-x64.zip
+            artifacts/signed/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
   publish-main:
-    needs: [windows, sign]
+    needs: [windows, sign, signpath]
     # An enabled signing job must succeed. Never fall back to unsigned on failure.
     if: >-
       always() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.windows.result == 'success' &&
-      (needs.sign.result == 'success' ||
-      (needs.sign.result == 'skipped' && vars.ASTER_SIGNING_ENABLED != 'true'))
+      ((needs.sign.result == 'success' && needs.signpath.result == 'skipped') ||
+      (needs.signpath.result == 'success' && needs.sign.result == 'skipped') ||
+      (needs.sign.result == 'skipped' && needs.signpath.result == 'skipped' && vars.ASTER_SIGNING_ENABLED != 'true'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -163,12 +240,12 @@ jobs:
           python-version: '3.12'
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: ${{ needs.sign.result == 'success' && 'Aster-win-x64-signed' || 'Aster-win-x64' }}
+          name: ${{ (needs.sign.result == 'success' || needs.signpath.result == 'success') && 'Aster-win-x64-signed' || 'Aster-win-x64' }}
           path: artifacts/main-download
       - name: Publish this successful main push
         env:
           GH_TOKEN: ${{ github.token }}
-          ASTER_SIGNED_PACKAGE: ${{ needs.sign.result == 'success' && 'true' || 'false' }}
+          ASTER_SIGNED_PACKAGE: ${{ (needs.sign.result == 'success' || needs.signpath.result == 'success') && 'true' || 'false' }}
         shell: bash
         run: |
           set -euo pipefail

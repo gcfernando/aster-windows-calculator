@@ -6,19 +6,49 @@ SmartScreen checks the publisher signature and download reputation before Aster 
 
 Signing is disabled until the owner configures a public-trust signing identity. With signing disabled, successful main pushes continue to publish explicitly unsigned previews. Windows may display **Unknown publisher** and **Windows protected your PC**. These builds retain application version **1.0.0**; unique workflow-run tags distinguish packages without changing the application version.
 
-The repository includes optional Microsoft Artifact Signing integration using OpenID Connect (OIDC). This change does not create an Azure account, enroll an identity, purchase a service, install a certificate or change Windows protection settings. Eligibility, identity validation and service costs must be resolved with the provider before enabling it.
+The proposed no-cost route is [SignPath Foundation's free program for qualifying open-source projects](https://signpath.org/). Enrollment has not been submitted and no provider approval exists; no SignPath certificate, approved project or active signing service is claimed here. Aster remains free to use without buying a certificate. The existing Azure integration remains an optional alternative for maintainers with an eligible account. Neither integration creates an account, enrolls an identity or changes Windows protection settings.
 
 Signing helpers and their regression tests require **PowerShell 7.6 or newer on .NET 10** for ZIP CRC/encryption inspection. Installing the .NET SDK does not upgrade the PowerShell host. The workflow uses the Windows Server 2025 runner, which supplies this runtime.
 
+## Apply for free SignPath signing
+
+1. Read the [Foundation conditions](https://signpath.org/terms) and [apply for a free subscription](https://signpath.org/apply) with this repository and its release/download information. Acceptance is the Foundation's decision. Keep signing disabled until it approves the project and its signing configuration.
+2. After approval, link the exact repository `https://github.com/gcfernando/aster-windows-calculator` to SignPath's GitHub trusted-build integration. Configure origin verification for reviewed builds from `main`, a release-signing policy with a human approver, and an artifact configuration restricted to the four application binaries listed below. Enforce their product name/version metadata as required by the provider. Do not sign unrelated or upstream binaries with this project's identity.
+3. Use the approved organization's real identifiers and submitter token in the following Actions settings. Do not invent IDs or reuse another project's policy. The token belongs in a repository secret; the other entries are repository variables.
+
+| Setting | Value |
+| --- | --- |
+| `ASTER_SIGNING_PROVIDER` | Exactly `signpath`; absent/empty defaults to the existing `azure` route for compatibility |
+| `ASTER_SIGNPATH_ORGANIZATION_ID` | Approved SignPath organization ID |
+| `ASTER_SIGNPATH_PROJECT_SLUG` | Approved project slug for this repository |
+| `ASTER_SIGNPATH_POLICY_SLUG` | Approved release-signing policy slug |
+| `ASTER_SIGNPATH_ARTIFACT_SLUG` | Approved artifact configuration slug restricting the submitted files |
+| `ASTER_SIGNPATH_API_TOKEN` **secret** | Token with submitter permission for that project/policy |
+| `ASTER_SIGNING_PUBLISHER` | Exact approved certificate subject distinguished name; obtain it from the provider rather than guessing |
+| `ASTER_SIGNING_ENABLED` | Exactly `true`, set **last** after approval and configuration; empty or `false` keeps unsigned releases |
+
+4. Review and approve each release request in SignPath. The workflow uploads the verified four-file payload as a GitHub Actions artifact for origin verification, waits for the signed result, and applies the same Windows trust and unchanged-content checks used by the Azure route. Denial, timeout, missing configuration or an invalid result blocks publication; there is no unsigned fallback when signing is enabled. See [SignPath's GitHub integration](https://docs.signpath.io/trusted-build-systems/github) for provider setup.
+
+## Code signing policy
+
+**Status: enrollment not submitted; proposed policy only.** No release is represented as SignPath-signed until approval, configuration and a successful verified signing run exist. The proposed author, reviewer and release-signing approver is [gcfernando](https://github.com/gcfernando), the repository maintainer; these roles require confirmation during enrollment. Before activation, the maintainer must confirm MFA for all participants' GitHub and SignPath access and the required release-review/approval process. This document does not attest to account security settings or completed approvals. Provider credit will be added only after the service is approved and active.
+
+### Privacy and network behavior
+
+Aster calculates and stores preferences locally; its application source has no automatic telemetry or update client. The Support action opens GitHub in the user's browser, and diagnostic information is copied locally for the user to review before sharing. It does not automatically send calculations, history or profile data. Browser and Windows certificate/reputation checks have their own network behavior. CI signing sends the release binaries and build-origin metadata to the selected signing service; it does not run on an end user's calculator data. See the [release guide](release-guide.md#data-privacy-and-support) for local data and removal.
+
 ## Configure a trusted signing identity
 
-1. Check the provider's [current eligibility requirements](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart), create an eligible Artifact Signing account, complete identity validation and create a **Public Trust** certificate profile. Individual and organization eligibility differ; do not assume that an eligible country for organizations also supports individual enrollment. A private-trust/test profile is not suitable for public downloads.
+This section preserves the optional **Azure** route; it is not required to use Aster or apply to the free Foundation program. Microsoft's [current eligibility requirements](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart) limit Public Trust individual enrollment to the US and Canada. An individual based in Sweden is therefore not currently eligible through that route; EU organization eligibility is separate. Azure service costs are not a prerequisite for using Aster.
+
+1. For an already eligible Azure account, complete identity validation and create a **Public Trust** certificate profile. A private-trust/test profile is not suitable for public downloads.
 2. Configure a Microsoft Entra workload identity with a GitHub OIDC federated credential. Restrict its issuer to `https://token.actions.githubusercontent.com`, audience to `api://AzureADTokenExchange` and subject to `repo:gcfernando/aster-windows-calculator:ref:refs/heads/main`. Do not authorize pull-request subjects or wildcard branches. Changes to trusted main workflows must be reviewed.
 3. Give that identity the **Artifact Signing Certificate Profile Signer** role scoped to the selected certificate profile, following the provider's current role naming and setup instructions. Do not grant subscription-wide owner access for signing.
 4. Add the following GitHub Actions repository variables. Client/tenant/subscription IDs are identifiers; this flow does not require a client secret or private key in the repository.
 
 | Variable | Value |
 | --- | --- |
+| `ASTER_SIGNING_PROVIDER` | Exactly `azure`, or leave empty for compatibility with existing Azure configuration |
 | `ASTER_SIGNING_CLIENT_ID` | Workload identity client ID |
 | `ASTER_SIGNING_TENANT_ID` | Microsoft Entra tenant ID |
 | `ASTER_SIGNING_SUBSCRIPTION_ID` | Signing subscription ID |
@@ -28,7 +58,7 @@ Signing helpers and their regression tests require **PowerShell 7.6 or newer on 
 | `ASTER_SIGNING_PUBLISHER` | Exact complete certificate subject returned by `Get-AuthenticodeSignature`, including its `CN=`, `O=` and other fields as applicable |
 | `ASTER_SIGNING_ENABLED` | Set to the exact string `true` **last**, after the identity and all other variables are configured |
 
-The workflow validates configuration before authentication. Enabled signing must complete successfully before publication; missing settings, signature errors, a different publisher or signing-job failure block publication. There is no unsigned fallback while signing is enabled. Pull requests and manual verification runs do not receive the signing job's OIDC permission and do not publish releases.
+The workflow validates configuration before authentication. Select exactly one provider: only `azure` and `signpath` are accepted. Enabled signing must complete successfully before publication; missing settings, signature errors, a different publisher or signing-job failure block publication. There is no unsigned fallback while signing is enabled. Only the Azure job receives OIDC permission; the SignPath job uses its scoped submitter secret. Both jobs are restricted to main pushes. Pull requests and manual verification runs do not sign or publish releases.
 
 ## Package and evidence order
 

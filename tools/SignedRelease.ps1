@@ -253,6 +253,46 @@ function Assert-TrustedSigningSignature([string]$Path, [string]$ExpectedPublishe
     return $signature
 }
 
+function Import-SignPathPayload([string]$Archive, [string]$Folder) {
+    # Provider output is untrusted until finalization validates trust and content.
+    # Read and validate every entry before replacing any staged application file.
+    $folderPath = [IO.Path]::GetFullPath($Folder)
+    Assert-SigningDirectory $folderPath
+    if (-not (Test-Path -LiteralPath ($folderPath+'.signing-input.json') -PathType Leaf)) { throw 'Verified signing snapshot is missing.' }
+    $archivePath = [IO.Path]::GetFullPath($Archive)
+    if ((Get-Item -LiteralPath $archivePath).Length -gt 536870912) { throw 'SignPath archive exceeds the input limit.' }
+    $payload = [Collections.Generic.Dictionary[string,byte[]]]::new([StringComparer]::Ordinal)
+    $zip = [IO.Compression.ZipFile]::OpenRead($archivePath)
+    try {
+        if ($zip.Entries.Count -ne $script:AsterAuthenticodeTargets.Count) { throw 'SignPath must return exactly the four application binaries.' }
+        [long]$total = 0
+        foreach ($entry in $zip.Entries) {
+            if ($entry.FullName -cnotin $script:AsterAuthenticodeTargets -or $payload.ContainsKey($entry.FullName)) { throw 'Unexpected or duplicate SignPath member.' }
+            $target = Resolve-SigningMember $folderPath $entry.FullName
+            if (-not (Test-Path -LiteralPath $target -PathType Leaf)) { throw 'Original signing target is missing.' }
+            $kind = ($entry.ExternalAttributes -shr 16) -band 0xf000
+            if ($kind -notin @(0, 0x8000) -or $entry.IsEncrypted) { throw 'SignPath members must be unencrypted ordinary files.' }
+            $total += $entry.Length
+            if ($entry.Length -le 0 -or $total -gt 536870912) { throw 'SignPath payload exceeds staging limits.' }
+            $inputStream = $entry.Open()
+            $buffer = [IO.MemoryStream]::new()
+            try {
+                $crc = [Aster.ReleaseSigningBinary]::CopyWithCrc($inputStream, $buffer, $entry.Length)
+                if ($crc -ne $entry.Crc32) { throw 'SignPath member CRC mismatch.' }
+                $payload.Add($entry.FullName, $buffer.ToArray())
+            } finally { $buffer.Dispose(); $inputStream.Dispose() }
+        }
+    } finally { $zip.Dispose() }
+    foreach ($name in $script:AsterAuthenticodeTargets) {
+        $target = Resolve-SigningMember $folderPath $name
+        if ((Get-Item -LiteralPath $target).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Signing targets must not be links.' }
+    }
+    foreach ($name in $script:AsterAuthenticodeTargets) {
+        [IO.File]::WriteAllBytes((Resolve-SigningMember $folderPath $name), $payload[$name])
+    }
+    # Complete-SignedRelease must run next, before packaging or executing these bytes.
+}
+
 function Complete-SignedRelease([string]$Folder, [string]$ArchivePath, [string]$ExpectedPublisher) {
     if ([string]::IsNullOrWhiteSpace($ExpectedPublisher)) { throw 'Expected signing publisher must be configured.' }
     $folderPath = [IO.Path]::GetFullPath($Folder)
