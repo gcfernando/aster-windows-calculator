@@ -1,3 +1,4 @@
+[![Download Aster - Windows Calculator](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/aster-windows-calculator/files/latest/download)
 # Aster
 
 Aster is an offline Windows calculator for everyday arithmetic, scientific expressions, programmer calculations, unit conversions and date arithmetic.
